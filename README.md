@@ -38,3 +38,47 @@ HSIYA is a full-stack web application for recomending MTG singles at local cards
 - **Styling:** TailwindCSS for rapid UI development with utility-first classes.  
 
 ---
+
+## Database Setup & Status
+
+The backend uses a PostgreSQL database running in a Docker container.
+
+### Starting the Database
+
+If the container is not running, start it with:
+
+```bash
+docker start cardshop-db
+````
+
+### Checking Container Status
+
+List all containers (running and stopped) to check the status:
+
+```bash
+docker ps -a
+```
+
+A running container should show `cardshop-db` in the list with `STATUS` as `Up`.
+
+### Accessing the Database
+
+To connect to the database:
+
+```bash
+docker exec -it cardshop-db psql -U hsiya_user -d cardshop
+```
+
+Once inside, you can run SQL commands. For example:
+
+* List tables:
+
+```sql
+\dt
+```
+
+* View a few rows from a table (e.g., `cards`):
+
+```sql
+SELECT * FROM cards LIMIT 5;
+```
