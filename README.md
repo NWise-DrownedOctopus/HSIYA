@@ -1,7 +1,6 @@
 # HSIYA - (HOT SINGLES IN YOUR AREA)
 
-HSIYA is a full-stack web application for recomending MTG singles at local cardshops based on your commander deck.  
-It consists of a **FastAPI backend** with a **PostgreSQL database** and a **Next.js 13 frontend** using TailwindCSS.
+HSIYA is a full-stack web application for recomending MTG singles at local cardshops based on your commander deck. It consists of a **FastAPI backend** with a **PostgreSQL database** and a **Next.js 13 frontend** using TailwindCSS.
 
 ---
 
