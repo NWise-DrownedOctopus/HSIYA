@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #0e0f13;
+  --bg-secondary: #151821;
+  --text-primary: #e6e6eb;
+  --text-muted: #9aa0b4;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+}
+
+/* Base page styling */
+html,
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  height: 100%;
+  min-height: 100%;
+}
+
+/* Subtle noise texture */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: -1;
+}
