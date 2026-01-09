@@ -1,10 +1,41 @@
-# HSIYA
-Web app for recommending card singles from local card shops based on your commander. 
+# HSIYA - (HOT SINGLES IN YOUR AREA)
 
-## Backend Overview (FastAPI)
+HSIYA is a full-stack web application for recomending MTG singles at local cardshops based on your commander deck.  
+It consists of a **FastAPI backend** with a **PostgreSQL database** and a **Next.js 13 frontend** using TailwindCSS.
 
-The backend is built using FastAPI and SQLAlchemy, providing a RESTful API for managing and querying trading card data. The backend interacts with a PostgreSQL database to store and retrieve card information and supports search and retrieval endpoints for the frontend.
+---
 
-## Frontend (Next.js Dashboard)
+## Backend (FastAPI + PostgreSQL)
 
-The frontend is built with Next.js 13 using the App Router. It provides the user interface for searching, viewing, and interacting with cards from the backend API.
+- **Purpose:** Serve card data via REST API endpoints.  
+- **Core Stack:** FastAPI, SQLAlchemy ORM, PostgreSQL.  
+- **Endpoints:**
+  - `/cards` – Search cards by name.
+  - `/cards/{id}` – Fetch individual card details.
+- **Design Decisions:**
+  - Database sessions handled via dependency injection (`get_db`).  
+  - CORS enabled for frontend development.  
+
+---
+
+## Frontend (Next.js 13 + TailwindCSS)
+
+- **Purpose:** Interactive dashboard for browsing and searching cards.  
+- **Core Stack:** Next.js 13 (App Router), TypeScript, TailwindCSS.  
+- **Features:**
+  - Autocomplete card search with live results from the backend.  
+  - Dynamic card detail pages (`/cards/[id]`).  
+- **Design Decisions:**
+  - Centralized reusable components in `ui/`.  
+  - Pages structured with App Router (`app/`) for scalability.
+
+---
+
+## Core Stack Decisions
+
+- **Backend:** FastAPI for async performance and easy REST API creation.  
+- **Database:** PostgreSQL for structured card data and relational queries.  
+- **Frontend:** Next.js 13 for server-side rendering, routing, and modern React features.  
+- **Styling:** TailwindCSS for rapid UI development with utility-first classes.  
+
+---
