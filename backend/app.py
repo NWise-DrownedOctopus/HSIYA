@@ -1,10 +1,10 @@
 from fastapi import FastAPI, Query, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from database import SessionLocal
-from models import Card
+from models import ShopCard, Card, Shop
 
-import csv # Might be good to get rid of now
+import logging
 
 app = FastAPI()
 
@@ -16,76 +16,90 @@ def get_db():
         db.close()
 
 # Enable CORS for Next.js frontend
-### MUST CHANGE AS THIS IS VERY DANGEROUS OUTSIDE OF TESTING ###
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Load CSV data into memory, only Magic cards
-cards = []
-with open("test_data.csv", newline="", encoding="utf-8") as f:
-    reader = csv.DictReader(f)
-    for row in reader:
-        if row["Product Line"] != "Magic":
-            continue
 
-        cards.append({
-            "id": int(row["TCGplayer Id"]),
-            "name": row["Product Name"],
-            "set": row["Set Name"],
-            "rarity": row["Rarity"],
-            "condition": row["Condition"],
-            "market_price": row["TCG Market Price"],
-            "tcg_low": row["TCG Low Price"],
-            "quantity": row["Total Quantity"],
-            "photo_url": row["Photo URL"],
-        })
+# ---------------------------
+# Get a specific card by its ShopCard ID
+# ---------------------------
+@app.get("/shop_cards/{shop_card_id}")
+def get_shop_card(shop_card_id: str, db: Session = Depends(get_db)):
+    try:
+        shop_card = db.query(ShopCard).join(Card).filter(ShopCard.id == shop_card_id).first()
+        if not shop_card:
+            raise HTTPException(status_code=404, detail="Shop card not found")
 
-@app.get("/cards/{card_id}")
-def get_card(card_id: int, db: Session = Depends(get_db)):
-    card = db.query(Card).filter(Card.id == card_id).first()
-    if not card:
-        raise HTTPException(status_code=404, detail="Card not found")
+        card = shop_card.card
 
-    return {
-        "id": card.id,
-        "name": card.name,
-        "set": card.card_set,
-        "rarity": card.rarity,
-        "condition": card.condition,
-        "market_price": card.market_price,
-        "tcg_low": card.tcg_low,
-        "quantity": card.quantity,
-        "photo_url": card.photo_url,
-    }
+        # Extract a photo URL from the new image_uris JSON
+        photo_url = None
+        if card.image_uris:
+            photo_url = card.image_uris.get("normal")  # or "small" / "large" depending on preference
+
+        return {
+            "shop_card_id": shop_card.id,
+            "name": card.name,
+            "set": card.set_name,
+            "quantity": shop_card.quantity,
+            "price_cents": shop_card.price_cents,
+            "condition": shop_card.condition,
+            "photo_url": photo_url,
+        }
+
+    except Exception as e:
+        logging.exception("Error fetching shop card")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/cards")
-def get_cards(q: str = Query(None, min_length=1), db: Session = Depends(get_db)):
+
+# ---------------------------
+# Search shop_cards by card name
+# ---------------------------
+@app.get("/shop_cards")
+def search_shop_cards(q: str = Query(None, min_length=1), db: Session = Depends(get_db)):
     if not q:
         return []
 
-    q_lower = f"%{q.lower()}%"
-    results = (
-        db.query(Card)
-        .filter(Card.name.ilike(q_lower))  # case-insensitive match
-        .limit(10)
-        .all()
-    )
+    try:
+        q_lower = f"%{q.lower()}%"
+        results = (
+            db.query(ShopCard)
+            .join(Card, ShopCard.card_id == Card.id)
+            .filter(Card.name.ilike(q_lower))
+            .limit(10)
+            .all()
+        )
 
-    return [
-        {
-            "id": card.id,
-            "name": card.name,
-            "set": card.card_set,
-            "rarity": card.rarity,
-            "condition": card.condition,
-            "market_price": card.market_price,
-            "photo_url": card.photo_url,
-        }
-        for card in results
-    ]
+        response = []
+        for shop_card in results:
+            card = shop_card.card
+            # Use image_uris JSON
+            image_url = card.image_uris.get("normal") if card.image_uris else None
+
+            response.append({
+                "shop_card_id": shop_card.id,
+                "name": card.name,
+                "set": card.set_name,
+                "quantity": shop_card.quantity,
+                "price_cents": shop_card.price_cents,
+                "condition": shop_card.condition,
+                "photo_url": image_url,
+            })
+
+        return response
+
+    except Exception as e:
+        logging.exception("Error fetching shop cards")
+        raise HTTPException(status_code=500, detail=str(e))
 

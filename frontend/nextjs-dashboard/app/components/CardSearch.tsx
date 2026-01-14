@@ -10,7 +10,6 @@ export default function CardSearch() {
     const [activeIndex, setActiveIndex] = useState(-1);
     const router = useRouter();
 
-
     // Optional: handle outside clicks
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -26,7 +25,7 @@ export default function CardSearch() {
         console.log("Results:", results);
     }, [results]);
 
-    // Optional: fetch results from FastAPI
+    // Fetch results from FastAPI
     useEffect(() => {
         setActiveIndex(-1);
         if (!query) {
@@ -35,10 +34,17 @@ export default function CardSearch() {
         }
 
         const fetchResults = async () => {
-            const res = await fetch(`http://127.0.0.1:8000/cards?q=${query}`);
-            const data = await res.json();
-            setResults(data);
-            setIsOpen(true);
+            try {
+                const res = await fetch(`http://127.0.0.1:8000/shop_cards?q=${query}`);
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                const data = await res.json();
+                setResults(data);
+                setIsOpen(true);
+            } catch (err) {
+                console.error("Failed to fetch shop cards:", err);
+                setResults([]);
+                setIsOpen(false);
+            }
         };
 
         const timeout = setTimeout(fetchResults, 200); // debounce
@@ -51,16 +57,12 @@ export default function CardSearch() {
         switch (e.key) {
             case "ArrowDown":
                 e.preventDefault();
-                setActiveIndex((prev) =>
-                    prev < results.length - 1 ? prev + 1 : 0
-                );
+                setActiveIndex((prev) => (prev < results.length - 1 ? prev + 1 : 0));
                 break;
 
             case "ArrowUp":
                 e.preventDefault();
-                setActiveIndex((prev) =>
-                    prev > 0 ? prev - 1 : results.length - 1
-                );
+                setActiveIndex((prev) => (prev > 0 ? prev - 1 : results.length - 1));
                 break;
 
             case "Enter":
@@ -78,7 +80,8 @@ export default function CardSearch() {
 
     function selectCard(card: any) {
         setIsOpen(false);
-        router.push(`/cards/${card.id}`);
+        // Use shop_card_id for the route if you want to display shop-specific info
+        router.push(`/cards/${card.shop_card_id}`);
     }
 
     return (
@@ -101,7 +104,7 @@ export default function CardSearch() {
                 <ul className="absolute w-full mt-1 max-h-60 overflow-y-auto rounded-xl bg-neutral-800 shadow-lg z-10">
                     {results.map((card, index) => (
                         <li
-                            key={card.id}
+                            key={card.shop_card_id}
                             onMouseDown={() => selectCard(card)}
                             className={`
                                 flex items-center px-4 py-2 cursor-pointer
@@ -125,7 +128,6 @@ export default function CardSearch() {
                             </div>
                         </li>
                     ))}
-
                 </ul>
             )}
         </div>
