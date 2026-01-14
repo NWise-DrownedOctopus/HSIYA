@@ -82,3 +82,18 @@ Once inside, you can run SQL commands. For example:
 ```sql
 SELECT * FROM cards LIMIT 5;
 ```
+
+### Starting Back-End (Fast API)
+
+Activate virtual environment
+
+```bash
+.\Activate.ps1
+```
+
+Reload backend app
+
+```bash
+(.venv) PS E:\WebDevStuff\HSIYA> uvicorn backend.app:app --reload
+```
+
