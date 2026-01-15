@@ -1,19 +1,15 @@
 from fastapi import FastAPI, Query, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session, joinedload
-from database import SessionLocal
-from models import ShopCard, Card, Shop
+
+from .database import SessionLocal
+from .models import ShopCard, Card, Shop
+from .deps import get_db
+from .routes.auth import router as auth_router
 
 import logging
 
 app = FastAPI()
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 # Enable CORS for Next.js frontend
 origins = [
@@ -29,6 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
 
 # ---------------------------
 # Get a specific card by its ShopCard ID

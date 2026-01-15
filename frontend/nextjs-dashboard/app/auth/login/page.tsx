@@ -1,0 +1,39 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+export default function LoginPage() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const router = useRouter();
+
+    const handleLogin = async () => {
+        const res = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+        });
+
+        if (res.ok) {
+            router.push("/dashboard");
+        } else {
+            const data = await res.json();
+            alert(`Login failed: ${data.error}`);
+        }
+    };
+
+    return (
+        <div>
+            <h1>Login</h1>
+            <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
+            <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+            />
+            <button onClick={handleLogin}>Login</button>
+        </div>
+    );
+}
